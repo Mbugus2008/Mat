@@ -22,11 +22,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Jane Muthoni'), findsOneWidget);
-    expect(find.text('Account snapshot'), findsOneWidget);
     expect(find.text('Fleet (3)'), findsOneWidget);
     expect(find.text('Loans (2)'), findsOneWidget);
     expect(find.textContaining('Member No.'), findsWidgets);
     expect(find.textContaining('Vehicle Upgrade Facility'), findsOneWidget);
     expect(find.textContaining('Working Capital Boost'), findsOneWidget);
+
+    await tester.openDrawer();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Account snapshot'), findsOneWidget);
   });
 }

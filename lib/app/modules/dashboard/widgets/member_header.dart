@@ -10,12 +10,14 @@ class MemberHeader extends StatelessWidget {
     required this.totalBalance,
     required this.totalArrears,
     this.lastSynced,
+    this.onViewAccount,
   });
 
   final Member member;
   final double totalBalance;
   final double totalArrears;
   final DateTime? lastSynced;
+  final VoidCallback? onViewAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +115,10 @@ class MemberHeader extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (onViewAccount != null) ...[
+                    const SizedBox(height: 12),
+                    _AccountShortcut(onPressed: onViewAccount!),
+                  ],
                   if (lastSynced != null) ...[
                     const SizedBox(height: 12),
                     Text(
@@ -198,6 +204,34 @@ class _HeaderStat extends StatelessWidget {
                 ?.copyWith(color: Colors.white70),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AccountShortcut extends StatelessWidget {
+  const _AccountShortcut({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: const Icon(Icons.account_circle_outlined),
+      label: const Text('Account snapshot'),
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.white.withOpacity(0.16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        textStyle: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: Colors.white.withOpacity(0.35)),
+        ),
       ),
     );
   }
