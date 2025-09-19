@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../controllers/member_controller.dart';
 import '../../../models/member.dart';
 import '../../utils/formatters.dart';
-import 'widgets/account_snapshot_section.dart';
 import 'widgets/error_banner.dart';
 import 'widgets/loans_section.dart';
 import 'widgets/member_header.dart';
@@ -20,6 +19,7 @@ class MemberDashboardPage extends GetView<MemberController> {
       final bool isLoading = controller.isLoading.value;
       final String? errorMessage = controller.errorMessage.value;
       final Member? member = controller.member;
+      final bool isRefreshing = controller.isRefreshing.value;
 
       Widget body;
 
@@ -95,7 +95,7 @@ class MemberDashboardPage extends GetView<MemberController> {
                 ],
               ),
             ),
-            if (controller.isRefreshing.value)
+            if (isRefreshing)
               const Positioned(
                 top: 0,
                 left: 0,
@@ -107,6 +107,18 @@ class MemberDashboardPage extends GetView<MemberController> {
       }
 
       return Scaffold(
+        appBar: AppBar(
+          title: const Text('Member Dashboard'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh data',
+              onPressed: isRefreshing || isLoading
+                  ? null
+                  : () => controller.refreshMember(),
+            ),
+          ],
+        ),
         drawer: member != null
             ? _MemberAccountDrawer(
                 member: member,
@@ -210,60 +222,213 @@ class _MemberAccountDrawer extends StatelessWidget {
     return Drawer(
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
+            //_MiniAccountSnapshot(member: member),
+            const SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF0F6E8C), Color(0xFF16324F)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(22),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Your member profile',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                   const SizedBox(height: 10),
                   Text(
                     member.name,
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                    style: theme.textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
-                    'Member No. ${member.memberNo}',
+                    member.memberNo,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
+                      color: Colors.white.withOpacity(0.8),
                     ),
                   ),
-                  if (lastSynced != null) ...[
-                    const SizedBox(height: 18),
-                    Text(
-                      'Last synced ${Formatters.timestamp(lastSynced!)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      ),
+                  Text(
+                    member.phone,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withOpacity(0.8),
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      if (member.joinedOn != null)
+                        _DrawerInfoChip(
+                          icon: Icons.calendar_month_outlined,
+                          label: 'Joined',
+                          value: Formatters.date(member.joinedOn!),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            AccountSnapshotSection(member: member),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MiniAccountSnapshot extends StatelessWidget {
+  const _MiniAccountSnapshot({required this.member});
+
+  final Member member;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tiles = <_MiniSnapshotTileData>[
+      _MiniSnapshotTileData(
+        icon: Icons.credit_card,
+        label: 'Member no.',
+        value: member.memberNo,
+      ),
+      _MiniSnapshotTileData(
+        icon: Icons.badge_outlined,
+        label: 'National ID',
+        value: member.maskedNationalId,
+      ),
+      _MiniSnapshotTileData(
+        icon: Icons.phone_iphone,
+        label: 'Mobile',
+        value: member.phone,
+      ),
+      _MiniSnapshotTileData(
+        icon: Icons.people_outline,
+        label: 'Gender',
+        value: member.gender.label,
+      ),
+    ];
+    if (member.email != null && member.email!.isNotEmpty) {
+      tiles.add(
+        _MiniSnapshotTileData(
+          icon: Icons.email_outlined,
+          label: 'Email',
+          value: member.email!,
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F8FF),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE4EBFF)),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: tiles
+            .map((tile) => _MiniSnapshotTile(tile: tile, theme: theme))
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _MiniSnapshotTileData {
+  const _MiniSnapshotTileData({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+}
+
+class _MiniSnapshotTile extends StatelessWidget {
+  const _MiniSnapshotTile({required this.tile, required this.theme});
+
+  final _MiniSnapshotTileData tile;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints.tightFor(width: 150, height: 90),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE3E8FF)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(tile.icon, size: 18, color: theme.colorScheme.primary),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tile.label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.blueGrey.shade400,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  tile.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF102A43),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerInfoChip extends StatelessWidget {
+  const _DrawerInfoChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Chip(
+      avatar: Icon(icon, size: 18, color: Colors.black),
+      label: Text('$label: $value'),
+      labelStyle: theme.textTheme.labelSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: Colors.black,
+      ),
+      backgroundColor: Colors.white.withValues(alpha: 0.18),
+      side: BorderSide(color: Colors.white.withOpacity(0.3)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      visualDensity: VisualDensity.compact,
     );
   }
 }
