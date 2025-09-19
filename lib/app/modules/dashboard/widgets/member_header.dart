@@ -42,68 +42,7 @@ class MemberHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Icon(
-                  Icons.directions_bus_filled,
-                  size: 38,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 20),
-              
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.verified, size: 18, color: Colors.white),
-                        SizedBox(width: 6),
-                        Text(
-                          'Active member',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (onViewAccount != null) ...[
-                    const SizedBox(height: 12),
-                    _AccountShortcut(onPressed: onViewAccount!),
-                  ],
-                  if (lastSynced != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      'Synced ${Formatters.timestamp(lastSynced!)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
+       
           const SizedBox(height: 28),
           Wrap(
             spacing: 16,

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../controllers/member_controller.dart';
 import '../../../models/member.dart';
 import '../../utils/formatters.dart';
+import 'widgets/account_balances_section.dart';
 import 'widgets/error_banner.dart';
 import 'widgets/loans_section.dart';
 import 'widgets/member_header.dart';
@@ -44,18 +45,12 @@ class MemberDashboardPage extends GetView<MemberController> {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
+               
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                     sliver: SliverToBoxAdapter(
-                      child: Builder(
-                        builder: (headerContext) => MemberHeader(
-                          member: loadedMember,
-                          totalBalance: loadedMember.totalBalance,
-                          totalArrears: loadedMember.totalArrears,
-                          lastSynced: controller.lastUpdated.value,
-                          onViewAccount: () =>
-                              Scaffold.maybeOf(headerContext)?.openDrawer(),
-                        ),
+                      child: AccountBalancesSection(
+                        accounts: loadedMember.accounts,
                       ),
                     ),
                   ),
@@ -108,7 +103,7 @@ class MemberDashboardPage extends GetView<MemberController> {
 
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Member Dashboard'),
+          title: Text(member?.name ?? 'Member'),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
@@ -224,7 +219,7 @@ class _MemberAccountDrawer extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
-            //_MiniAccountSnapshot(member: member),
+            _MiniAccountSnapshot(member: member),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(20),

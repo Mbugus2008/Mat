@@ -48,11 +48,13 @@ class Member {
     this.gender = Gender.other,
     List<vehicle_model.Vehicle> vehicles = const <vehicle_model.Vehicle>[],
     List<Loan> loanAccounts = const <Loan>[],
+    List<MemberAccount> Accounts = const <MemberAccount>[],
     this.joinedOn,
     this.branch,
   })  : _vehicle = Vehicle,
         _vehicles = List<vehicle_model.Vehicle>.unmodifiable(vehicles),
-        _loans = List<Loan>.unmodifiable(loanAccounts);
+        _loans = List<Loan>.unmodifiable(loanAccounts),
+        _accounts = List<MemberAccount>.unmodifiable(Accounts);
 
   final String? Key;
   final String? No;
@@ -71,6 +73,7 @@ class Member {
 
   final List<vehicle_model.Vehicle> _vehicles;
   final List<Loan> _loans;
+  final List<MemberAccount> _accounts;
 
   String? get key => Key;
   String get memberNo => No ?? '';
@@ -105,6 +108,8 @@ class Member {
   List<vehicle_model.Vehicle> get vehicles => _vehicles;
 
   List<Loan> get loans => _loans;
+
+  List<MemberAccount> get accounts => _accounts;
 
   double get totalArrears =>
       _loans.fold<double>(0, (sum, loan) => sum + loan.arrears);
@@ -145,4 +150,54 @@ class Member {
     }
     return summary;
   }
+}
+
+enum PostingType {
+  blank('_blank_', 'Unspecified'),
+  loan('Loan', 'Loan'),
+  deposit('Deposit', 'Deposit'),
+  shares('Shares', 'Shares');
+
+  const PostingType(this.soapValue, this.label);
+
+  final String soapValue;
+  final String label;
+
+  static PostingType fromSoapValue(String? value) {
+    if (value == null || value.isEmpty) {
+      return PostingType.blank;
+    }
+    return PostingType.values.firstWhere(
+      (type) => type.soapValue == value,
+      orElse: () => PostingType.blank,
+    );
+  }
+}
+
+class MemberAccount {
+  const MemberAccount({
+    this.Key,
+    this.No,
+    this.Name,
+    this.Search_Name,
+    this.Name_2,
+    this.Net_Change,
+    PostingType? Posting_Type,
+  }) : Posting_Type = Posting_Type ?? PostingType.blank;
+
+  final String? Key;
+  final String? No;
+  final String? Name;
+  final String? Search_Name;
+  final String? Name_2;
+  final double? Net_Change;
+  final PostingType Posting_Type;
+
+  String get accountNo => No ?? '';
+  String get displayName => Name ?? Name_2 ?? '';
+  String get searchName => Search_Name ?? '';
+  double get netChange => Net_Change ?? 0;
+  PostingType get postingType => Posting_Type;
+
+  bool get hasPositiveBalance => netChange > 0;
 }

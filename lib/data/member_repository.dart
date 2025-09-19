@@ -44,6 +44,7 @@ class DemoMemberRepository implements MemberRepository {
       branch: 'CBD Express Branch',
       vehicles: vehicles,
       loanAccounts: refreshedLoans,
+      Accounts: _buildAccounts(),
     );
 
     return _cached!;
@@ -92,6 +93,35 @@ class DemoMemberRepository implements MemberRepository {
         Status: VehicleStatus.active,
         Fleet_No: 'FLEET-25',
         Route: 'CBD - Westlands',
+      ),
+    ];
+  }
+
+  List<MemberAccount> _buildAccounts() {
+    return const [
+      MemberAccount(
+        Key: 'acct-1',
+        No: 'SAV-00981',
+        Name: 'Main Shares Account',
+        Search_Name: 'SHARES',
+        Net_Change: 420000.0,
+        Posting_Type: PostingType.shares,
+      ),
+      MemberAccount(
+        Key: 'acct-2',
+        No: 'DEP-44210',
+        Name: 'Savings Deposit',
+        Search_Name: 'DEPOSIT',
+        Net_Change: 180000.0,
+        Posting_Type: PostingType.deposit,
+      ),
+      MemberAccount(
+        Key: 'acct-3',
+        No: 'LN-784512',
+        Name: 'Vehicle Upgrade Facility',
+        Search_Name: 'VEHICLE LOAN',
+        Net_Change: -1260000.0,
+        Posting_Type: PostingType.loan,
       ),
     ];
   }
