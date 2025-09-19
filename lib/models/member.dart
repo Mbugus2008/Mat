@@ -1,5 +1,5 @@
 import 'loan.dart';
-import 'vehicle.dart';
+import 'vehicle.dart' as vehicle_model;
 
 enum Gender { male, female, other }
 
@@ -16,73 +16,127 @@ extension GenderLabel on Gender {
   }
 }
 
+enum CrewType { owner, driver, conductor, unknown }
+
+extension CrewTypeLabel on CrewType {
+  String get label {
+    switch (this) {
+      case CrewType.owner:
+        return 'Owner';
+      case CrewType.driver:
+        return 'Driver';
+      case CrewType.conductor:
+        return 'Conductor';
+      case CrewType.unknown:
+        return 'Unknown';
+    }
+  }
+}
+
 class Member {
-  const Member({
-    required this.memberNo,
-    required this.name,
-    required this.nationalId,
-    required this.phone,
-    required this.gender,
-    required this.vehicles,
-    required this.loans,
+  Member({
+    this.Key,
+    this.No,
+    this.Name,
+    this.Phone_No,
+    this.ID_No,
+    this.E_Mail,
+    this.Customer_Posting_Group,
+    this.Loans,
+    this.Crew_Type,
+    String? Vehicle,
+    this.gender = Gender.other,
+    List<vehicle_model.Vehicle> vehicles = const <vehicle_model.Vehicle>[],
+    List<Loan> loanAccounts = const <Loan>[],
     this.joinedOn,
     this.branch,
-    this.email,
-  });
+  })  : _vehicle = Vehicle,
+        _vehicles = List<vehicle_model.Vehicle>.unmodifiable(vehicles),
+        _loans = List<Loan>.unmodifiable(loanAccounts);
 
-  final String memberNo;
-  final String name;
-  final String nationalId;
-  final String phone;
+  final String? Key;
+  final String? No;
+  final String? Name;
+  final String? Phone_No;
+  final String? ID_No;
+  final String? E_Mail;
+  final String? Customer_Posting_Group;
+  final double? Loans;
+  final CrewType? Crew_Type;
+  final String? _vehicle;
+
   final Gender gender;
-  final List<Vehicle> vehicles;
-  final List<Loan> loans;
   final DateTime? joinedOn;
   final String? branch;
-  final String? email;
 
-  String get firstName => name.split(' ').first;
+  final List<vehicle_model.Vehicle> _vehicles;
+  final List<Loan> _loans;
 
-  String get maskedNationalId {
-    if (nationalId.length <= 4) {
-      return nationalId;
+  String? get key => Key;
+  String get memberNo => No ?? '';
+  String get name => Name ?? '';
+  String get phone => Phone_No ?? '';
+  String get nationalId => ID_No ?? '';
+  String? get email => E_Mail;
+  String? get customerPostingGroup => Customer_Posting_Group;
+  double? get loansAmount => Loans;
+  CrewType? get crewType => Crew_Type;
+  String? get Vehicle => _vehicle;
+  String? get vehicle => Vehicle;
+
+  String get firstName {
+    final candidate = name.trim();
+    if (candidate.isEmpty) {
+      return '';
     }
-    final middle = nationalId.length - 4;
-    return nationalId.replaceRange(2, 2 + middle, '*' * middle);
+    final segments = candidate.split(RegExp(r'\s+'));
+    return segments.isEmpty ? candidate : segments.first;
   }
 
+  String get maskedNationalId {
+    final id = nationalId;
+    if (id.length <= 4) {
+      return id;
+    }
+    final middle = id.length - 4;
+    return id.replaceRange(2, 2 + middle, '*' * middle);
+  }
+
+  List<vehicle_model.Vehicle> get vehicles => _vehicles;
+
+  List<Loan> get loans => _loans;
+
   double get totalArrears =>
-      loans.fold<double>(0, (sum, loan) => sum + loan.arrears);
+      _loans.fold<double>(0, (sum, loan) => sum + loan.arrears);
 
   double get totalBalance =>
-      loans.fold<double>(0, (sum, loan) => sum + loan.balance);
+      _loans.fold<double>(0, (sum, loan) => sum + loan.balance);
 
   double get totalDisbursed =>
-      loans.fold<double>(0, (sum, loan) => sum + loan.amountApplied);
+      _loans.fold<double>(0, (sum, loan) => sum + loan.amountApplied);
 
   double get totalPaid =>
-      loans.fold<double>(0, (sum, loan) => sum + loan.paidAmount);
+      _loans.fold<double>(0, (sum, loan) => sum + loan.paidAmount);
 
-  int get activeLoans =>
-      loans.where((loan) => !loan.isCompleted).length;
+  int get activeLoans => _loans.where((loan) => !loan.isCompleted).length;
 
   bool get hasArrears => totalArrears > 0;
 
-  List<Vehicle> get vehiclesByStartDate {
-    final sorted = [...vehicles];
+  List<vehicle_model.Vehicle> get vehiclesByStartDate {
+    final sorted = _vehicles.toList(growable: false);
     sorted.sort((a, b) => b.startDate.compareTo(a.startDate));
     return sorted;
   }
 
   List<Loan> get loansByApplicationDate {
-    final sorted = [...loans];
+    final sorted = _loans.toList(growable: false);
     sorted.sort((a, b) => b.applicationDate.compareTo(a.applicationDate));
     return sorted;
   }
 
   Map<String, int> get vehicleTypeBreakdown {
     final Map<String, int> summary = <String, int>{};
-    for (final vehicle in vehicles) {
+    for (final vehicle in _vehicles) {
       summary.update(
         vehicle.vehicleType,
         (value) => value + 1,
